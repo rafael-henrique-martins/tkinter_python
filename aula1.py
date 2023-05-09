@@ -28,12 +28,13 @@ class Funcs():
         """)
         self.conn.commit(); print("banco de dados criado")
         self.desconecta_db()
-    def add_cliente(self):
+    def variaveis(self):
         self.codigo = self.codigo_entry.get()
         self.nome = self.nome_entry.get()
         self.telefone = self.telefone_entry.get()
         self.cidade = self.cidade_entry.get()
-
+    def add_cliente(self):
+        self.variaveis()
         self.conecta_db()
         self.cursor.execute(""" INSERT INTO clientes (nome_cliente, telefone, cidade)
         VALUES (?, ?, ?) """, (self.nome, self.telefone, self.cidade))
@@ -51,6 +52,24 @@ class Funcs():
             self.listaCli.insert("", END, values=i)
 
         self.desconecta_db()
+    def OnDoubleClick(self,event ):
+        self.limpar_tela()
+        self.listaCli.selection()
+
+        for n in self.listaCli.selection():
+            col1, col2, col3, col4 = self.listaCli.item(n, 'values')
+            self.codigo_entry.insert(END, col1)
+            self.nome_entry.insert(END, col2)
+            self.telefone_entry.insert(END, col3)
+            self.cidade_entry.insert(END, col4)
+    def deleta_cliente(self):
+        self.variaveis()
+        self.conecta_db()
+        self.cursor.execute(""" DELETE FROM clientes WHERE cod = ? """, (self.codigo))
+        self.conn.commit()
+        self.desconecta_db()
+        self.limpar_tela()
+        self.select_lista()
 
 class Application(Funcs):
     def __init__(self):
@@ -79,7 +98,8 @@ class Application(Funcs):
         self.frames_2.place(relx= 0.02, rely=0.5, relwidth=0.96, relheight=0.46)
     def widgets_frame1(self):
         # criando o botao de limpar
-        self.bt_limpar = Button(self.frames_1, text="LIMPAR", bd=2, bg="#107db2",fg="#dfe3ee",font=("verdana",8,"bold"))
+        self.bt_limpar = Button(self.frames_1, text="LIMPAR", bd=2, bg="#107db2",fg="#dfe3ee",font=("verdana",8,"bold"),
+                                command=self.limpar_tela)
         self.bt_limpar.place(relx= 0.2, rely=0.1, relwidth=0.1, relheight=0.15)
 
         # criando o botao de buscar
@@ -97,7 +117,7 @@ class Application(Funcs):
 
         # criando o botao de apagar
         self.bt_apagar = Button(self.frames_1, text="APAGAR", bd=2, bg="#107db2",fg="#dfe3ee",font=("verdana",8,"bold"),
-                                command=self.limpar_tela)
+                                command=self.deleta_cliente)
         self.bt_apagar.place(relx=0.8, rely=0.1, relwidth=0.1, relheight=0.15)
 
         # criacao da label de entrada do codigo
@@ -146,5 +166,7 @@ class Application(Funcs):
         self.scroolLista = Scrollbar(self.frames_2, orient="vertical")
         self.listaCli.configure(yscroll=self.scroolLista.set)
         self.scroolLista.place(relx=0.96, rely=0.1,relwidth=0.04,relheight=0.85)
+
+        self.listaCli.bind("<Double-1>", self.OnDoubleClick)
 
 Application()
